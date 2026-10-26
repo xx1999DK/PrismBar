@@ -2,7 +2,7 @@
 <h1 align="center">PrismBar · 棱镜菜单栏</h1>
 <p align="center">少一点，刚刚好。<br>原生 macOS 菜单栏整理工具 · 十款外观 · 无需屏幕录制</p>
 
-**本地候选版 0.1.0。** 已完成 Intel Mac 上的行为测试、原生界面和部分辅助功能实测；最终原菜单点击及外部图标折叠仍待确认，尚未发布。详见 [验证记录](docs/VALIDATION.md)。
+**PrismBar 0.1.0。** 已通过 Intel Mac 上的行为测试和核心实机验收：项目搜索、收藏、CodexVolt 原菜单点击及外部图标折叠／展开。完整范围见 [验证记录](docs/VALIDATION.md)。
 
 ![十款可切换原生外观](docs/images/themes.png)
 
@@ -17,7 +17,7 @@
 
 ## 安装与首次设置
 
-本地安装包位于 `dist/`，完成验收后再发布到 GitHub Releases。要求 macOS 13+。Intel 使用 `PrismBar-macOS-x86_64.zip`，Apple Silicon 使用 `PrismBar-macOS-arm64.zip`。后者已交叉编译，尚无 ARM 真机验证。
+从 [GitHub Releases](https://github.com/xx1999DK/PrismBar/releases/latest) 下载安装包。要求 macOS 13+。Intel 使用 `PrismBar-macOS-x86_64.zip`，Apple Silicon 使用 `PrismBar-macOS-arm64.zip`。后者已交叉编译，尚无 ARM 真机验证。
 
 1. 解压，将 `PrismBar.app` 放进“应用程序”后打开。
 2. 按住 **Command**，把低频图标拖到分隔线左侧。常用图标和 PrismBar 入口放在右侧。
