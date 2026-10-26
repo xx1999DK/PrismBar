@@ -1,0 +1,21 @@
+name: Build and test
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Behavioral tests
+        run: bash scripts/test.sh
+      - name: Build both architectures
+        run: |
+          PRISMBAR_ARCH=arm64 bash scripts/build.sh
+          PRISMBAR_ARCH=x86_64 bash scripts/build.sh
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: PrismBar-macOS
+          path: dist/*.zip
