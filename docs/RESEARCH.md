@@ -13,7 +13,7 @@ iBar 的初衷清晰：腾出菜单栏空间，同时保留低频图标的访问
 | 小图标多时仅靠形状识别困难 | 官方横向长条截图；设计推断，中等 | 可搜索名称与应用，常用项目置顶 | 面板比一行工具条更高 |
 | 悬停触发可能误开 | 商店版本说明加入仅点击选项；较高 | 默认且仅使用显式点击 / 快捷键 | 不提供悬停模式 |
 | 权限用途不够直观 | 官方需要辅助功能与屏幕录制；高 | 折叠免授权；抽屉单独解释辅助功能 | 使用应用图标，不显示实时徽标 |
-| 自动隐藏可能干扰正在用的菜单 | 交互风险推断，待真实场景验证 | 打开菜单、指针位于菜单栏、面板可见时延迟收回 | 无辅助功能时暂停自动收回 |
+| 自动隐藏可能干扰正在用的菜单 | 交互风险推断；核心策略已测试，完整兼容范围见验证记录 | 打开菜单、指针位于菜单栏、面板可见时延迟收回 | 无辅助功能时暂停自动收回 |
 | 个性化与操作一致性 | 用户明确要求 CodexVolt 十种风格 | 十主题统一交互与层级，颜色、符号、字体及圆角变化 | 不增加动画和图片主题包 |
 | 排布越自动越容易与其他工具冲突 | 系统行为风险推断，中等 | Command 拖拽确定分隔边界，不主动移动其他应用图标 | 首次需用户整理一次 |
 
@@ -35,6 +35,7 @@ iBar 的初衷清晰：腾出菜单栏空间，同时保留低频图标的访问
 - [官方聚合模式示意图](https://13315641.s21i.faiusr.com/2/1/ABUIABACGAAg-sqZmwYohLuYhwcwyhE4xgo.jpg)
 - [官方普通模式示意图](https://13315641.s21i.faiusr.com/2/1/ABUIABACGAAggcuZmwYogPaN4AYwyhE4xgo.jpg)
 - [CodexVolt 外观参考](https://github.com/xx1999DK/CodexVolt)
+- [Apple AXUIElementPerformAction](https://developer.apple.com/documentation/applicationservices/1462091-axuielementperformaction)（本机 SDK 头文件明确说明模态动作可能超时，但不一定失败）
 - [Apple NSStatusItem](https://developer.apple.com/documentation/appkit/nsstatusitem)
 - [Apple SMAppService](https://developer.apple.com/documentation/servicemanagement/smappservice)
 

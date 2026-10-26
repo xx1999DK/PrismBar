@@ -54,6 +54,7 @@ final class PrismApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     store.onPreferencesChanged = { [weak self] in self?.preferencesChanged() }
     store.onToggle = { [weak self] in self?.toggleFold() }
     store.onSettings = { [weak self] in self?.showSettings() }
+    store.onDrawer = { [weak self] in self?.showDrawer() }
     store.onOrganize = { [weak self] in self?.organize() }
     store.onActivate = { [weak self] id in self?.activate(id) }
     store.onClose = { [weak self] in self?.closePanel() }
@@ -66,6 +67,8 @@ final class PrismApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     if !store.preferences.completedSetup || CommandLine.arguments.contains("--settings") { showSettings() }
   }
   func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    // Activating an already visible drawer must not dismiss it or steal focus for Settings.
+    if panel?.isVisible == true || flag { return true }
     showSettings(); return true
   }
   func applicationWillTerminate(_ notification: Notification) {
@@ -183,10 +186,12 @@ final class PrismApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     settingsWindow?.makeKeyAndOrderFront(nil)
   }
   @objc func showDrawer() {
+    settingsWindow?.orderOut(nil)
     store.query = ""
     store.refreshPermission()
     if panel == nil {
       let panel = DrawerPanel(contentRect: NSRect(x: 0, y: 0, width: 440, height: 440), styleMask: [.nonactivatingPanel, .fullSizeContentView, .borderless], backing: .buffered, defer: false)
+      panel.title = "PrismBar · 聚合抽屉"
       panel.isFloatingPanel = true
       panel.level = .statusBar
       panel.hasShadow = true
@@ -238,9 +243,13 @@ final class PrismApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
       guard let self, !self.isTerminating else { return }
       let result = MenuAccessibility.press(handle)
-      if result == .success {
+      if result == .success || (result == .cannotComplete && MenuAccessibility.itemMenuIsOpen(handle)) {
         self.activeItem = handle
         self.scheduleCollapse()
+      } else if result == .cannotComplete {
+        // Do not steal focus from a menu whose opening action has not replied yet.
+        self.timer?.invalidate(); self.deadline = nil
+        self.store.message = "菜单响应较慢，暂时保持菜单栏展开。如果没有出现菜单，请直接点击原图标。"
       } else {
         self.timer?.invalidate(); self.deadline = nil
         self.store.message = "“\(handle.descriptor.title)”不支持辅助功能点击，或项目已失效。菜单栏已展开，请直接点击原图标；也可刷新列表重试。"
@@ -279,8 +288,13 @@ final class PrismApp: NSObject, NSApplicationDelegate, NSWindowDelegate {
       }
       showSettings()
       precondition(settingsWindow?.contentView?.fittingSize.width == 780)
+      showDrawer()
+      precondition(panel?.isVisible == true && settingsWindow?.isVisible == false)
+      _ = applicationShouldHandleReopen(NSApp, hasVisibleWindows: true)
+      precondition(panel?.isVisible == true && settingsWindow?.isVisible == false, "Reactivation must preserve the open drawer")
+      closePanel()
       settingsWindow?.close()
-      print("PASS: status items, expand/collapse, 10 theme symbols, native settings view, clean quit")
+      print("PASS: status items, expand/collapse, 10 theme symbols, settings, drawer reactivation regression, clean quit")
       NSApp.terminate(nil)
     }
   }

@@ -18,6 +18,8 @@ enum MenuAccessibility {
   }
 
   static func value(_ element: AXUIElement, _ name: String) -> CFTypeRef? {
+    // Timeouts are per AX object, not inherited by its children.
+    AXUIElementSetMessagingTimeout(element, 0.2)
     var result: CFTypeRef?
     guard AXUIElementCopyAttributeValue(element, name as CFString, &result) == .success else { return nil }
     return result
@@ -83,17 +85,40 @@ enum MenuAccessibility {
   static func press(_ item: MenuItemHandle) -> AXError {
     AXUIElementSetMessagingTimeout(item.element, 0.7)
     var actions: CFArray?
-    _ = AXUIElementCopyActionNames(item.element, &actions)
+    let lookup = AXUIElementCopyActionNames(item.element, &actions)
+    guard lookup == .success else { return lookup }
     let names = (actions as? [String]) ?? []
     // Never synthesize pointer motion or fall back to launching the parent app.
     if names.contains(kAXPressAction) {
       let result = AXUIElementPerformAction(item.element, kAXPressAction as CFString)
-      if result == .success { return result }
+      // NSMenu callbacks can stay in a modal loop until the user closes the menu.
+      // A timeout is ambiguous: sending another action can close the menu again.
+      if result != .actionUnsupported { return result }
     }
     if names.contains(kAXShowMenuAction) {
       return AXUIElementPerformAction(item.element, kAXShowMenuAction as CFString)
     }
     return .actionUnsupported
+  }
+
+  private static func isMenuSurface(_ element: AXUIElement) -> Bool {
+    let role = string(element, kAXRoleAttribute)
+    if [kAXMenuRole, kAXMenuItemRole, "AXPopover"].contains(role) { return true }
+    // Control Center uses a system dialog instead of AXMenu for Wi-Fi and audio.
+    return string(element, kAXSubroleAttribute) == "AXSystemDialog"
+  }
+
+  static func itemMenuIsOpen(_ item: MenuItemHandle) -> Bool {
+    if children(item.element).contains(where: { isMenuSurface($0) }) { return true }
+    let app = AXUIElementCreateApplication(item.pid)
+    var focused = element(app, kAXFocusedUIElementAttribute)
+    for _ in 0..<4 {
+      guard let current = focused else { break }
+      if isMenuSurface(current) { return true }
+      focused = element(current, kAXParentAttribute)
+    }
+    if let window = element(app, kAXFocusedWindowAttribute), isMenuSurface(window) { return true }
+    return false
   }
 
   static func menuIsOpen(_ item: MenuItemHandle?) -> Bool {
@@ -104,17 +129,10 @@ enum MenuAccessibility {
     var focused = element(system, kAXFocusedUIElementAttribute)
     for _ in 0..<4 {
       guard let current = focused else { break }
-      if [kAXMenuRole, kAXMenuItemRole].contains(string(current, kAXRoleAttribute)) { return true }
+      if isMenuSurface(current) { return true }
       focused = element(current, kAXParentAttribute)
     }
     guard let item else { return false }
-    // A menu can contain a whole hierarchy; only inspect the immediate menu role.
-    if children(item.element).contains(where: { string($0, kAXRoleAttribute) == kAXMenuRole }) { return true }
-    let app = AXUIElementCreateApplication(item.pid)
-    AXUIElementSetMessagingTimeout(app, 0.15)
-    if let focused = element(app, kAXFocusedUIElementAttribute) {
-      return [kAXMenuRole, kAXMenuItemRole].contains(string(focused, kAXRoleAttribute))
-    }
-    return false
+    return itemMenuIsOpen(item)
   }
 }

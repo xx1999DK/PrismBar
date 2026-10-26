@@ -23,6 +23,7 @@ final class BarStore: ObservableObject {
   var onPreferencesChanged: (() -> Void)?
   var onToggle: (() -> Void)?
   var onSettings: (() -> Void)?
+  var onDrawer: (() -> Void)?
   var onOrganize: (() -> Void)?
   var onActivate: ((String) -> Void)?
   var onClose: (() -> Void)?

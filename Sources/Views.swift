@@ -197,6 +197,7 @@ struct SettingsView: View {
         }
       }.padding(.vertical, 8)
       Divider()
+      Button("打开聚合抽屉") { store.onDrawer?() }.buttonStyle(.borderedProminent)
       Text("点按菜单栏图标打开抽屉 · 右键显示快捷操作\nOption 点按可直接展开或收起菜单栏").font(.system(size: 11)).foregroundStyle(.secondary).lineSpacing(4)
     }
   }
